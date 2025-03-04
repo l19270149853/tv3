@@ -1,0 +1,61 @@
+name: zmtv
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 每天 06:00 UTC 触发
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整提交历史
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium requests eventlet
+      - name: Run zmiptv
+        run: python zmiptv.py
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 配置Git用户
+          git config --global user.email "362213335lkh@gmail.com"
+          git config --global user.name "l19270149853"
+          # 仅添加目标文件
+          git add zby.txt
+          # 检查是否有未提交的更改
+          if git diff --quiet HEAD -- zby.txt; then
+            echo "没有未提交的更改"
+          else
+            echo "存在未提交的更改，暂存更改"
+            git stash push -m "临时暂存未提交的更改"
+          fi
+          # 检查是否有需要提交的更改
+          if ! git diff --cached --quiet; then
+            # 尝试拉取最新代码并解决冲突（简单自动处理示例，根据实际情况调整）
+            git pull origin main --rebase
+            # 自动解决冲突示例：假设简单丢弃远程版本保留本地版本（根据实际修改）
+            git checkout --ours zby.txt
+            git add zby.txt
+            git rebase --continue
+            git commit -m "自动更新 IPTV 列表 [skip ci]"
+            # 强制推送更新（解决冲突）
+            git push origin main --force
+            echo "已提交并推送更新"
+            # 如果之前有暂存的更改，恢复它们
+            if git stash list | grep -q "临时暂存未提交的更改"; then
+              echo "恢复暂存的更改"
+              git stash pop
+            fi
+          else
+            echo "没有检测到文件变更"
+          fi
