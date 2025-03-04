@@ -39,12 +39,12 @@ class EnhancedIPTVUpdater:
         self.failed_sources = set()
         self.valid_sources = [
             "https://d.kstore.dev/download/10694/zmtvid.txt",
-            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
-            "https://raw.githubusercontent.com/freeiptv-org/iptv/main/playlist.m3u"
+            
+            
         ]
         self.backup_sources = [
-            "https://mirror.example.com/backup.txt",
-            "https://raw.githubusercontent.com/another-iptv-list/main/list.m3u"
+            "",
+            ""
         ]
 
     def _create_session(self):
