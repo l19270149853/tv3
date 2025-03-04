@@ -61,3 +61,38 @@ jobs:
           else
             echo "没有检测到文件变更"
           fi  
+
+
+- name: Commit and push changes
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    # 显式设置文件模式
+    git config core.fileMode false
+    
+    # 强制添加文件
+    git add -f zby.txt
+    
+    # 精确检测变更
+    if ! git diff --cached --quiet; then
+      git config --global user.email "github-actions@github.com"
+      git config --global user.name "GitHub Actions"
+      
+      # 添加构建元数据到提交信息
+      COMMIT_MSG="自动更新 IPTV 列表
+      - 构建ID: $(date +%s)
+      - 频道数: $(grep -c ',' zby.txt)
+      - 文件大小: $(stat -c%s zby.txt) bytes"
+      
+      git commit -m "$COMMIT_MSG"
+      git pull --rebase
+      git push origin main
+      echo "::set-output name=status::updated"
+    else
+      # 创建空提交记录（可选）
+      git commit --allow-empty -m "心跳检测 [$(date -u +'%Y-%m-%dT%H:%M:%SZ')]"
+      git push origin main
+      echo "::set-output name=status::nochange"
+    fi
+
+
