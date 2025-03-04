@@ -20,7 +20,7 @@ class IPTVUpdater:
         self.session = self._create_session()
         self.sources = [
             "https://d.kstore.dev/download/10694/zmtvid.txt",
-            "https://raw.githubusercontent.com/iptv-org/iptv/master/scripts/sources.md"
+            
         ]
 
     def _create_session(self):
