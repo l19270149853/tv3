@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 import re
 import time
 import concurrent.futures
@@ -10,7 +10,7 @@ from urllib3.util.retry import Retry
 # 配置参数
 # ======================
 MAX_WORKERS = 10
-SPEED_THRESHOLD = 0.5
+SPEED_THRESHOLD = 0.1  # 降低速度阈值
 REQUEST_TIMEOUT = 15
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
@@ -26,8 +26,8 @@ class IPTVUpdater:
     def _create_session(self):
         session = requests.Session()
         retry = Retry(
-            total=3,
-            backoff_factor=0.3,
+            total=5,  # 增加重试次数
+            backoff_factor=0.5,  # 增加重试间隔
             status_forcelist=[500, 502, 503, 504],
             allowed_methods=['GET']
         )
@@ -75,7 +75,7 @@ class IPTVUpdater:
     def _speed_test(self, url):
         try:
             start_time = time.time()
-            with self.session.get(url, stream=True, timeout=(3, 6)) as response:
+            with self.session.get(url, stream=True, timeout=(10, 15)) as response:  # 增加超时时间
                 response.raise_for_status()
                 downloaded = 0
                 for chunk in response.iter_content(chunk_size=4096):
@@ -86,6 +86,8 @@ class IPTVUpdater:
                 return (downloaded / 1024) / duration
         except Exception as e:
             print(f"测速失败 {url}: {str(e)}")
+            with open("failed_urls.log", "a") as f:  # 记录失败日志
+                f.write(f"{url} - {str(e)}\n")
             return 0
 
     def _process_api(self, api_url):
